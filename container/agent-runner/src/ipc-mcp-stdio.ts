@@ -68,6 +68,73 @@ server.tool(
 );
 
 server.tool(
+  'send_file',
+  'Send a file to the user or group. The file must exist in your workspace (/workspace/group/). Use this to share generated files, images, reports, etc.',
+  {
+    file_path: z
+      .string()
+      .describe(
+        'Path to the file to send. Can be absolute (must be under /workspace/group/) or relative to /workspace/group/.',
+      ),
+  },
+  async (args) => {
+    const GROUP_DIR = '/workspace/group';
+    let filePath = args.file_path;
+
+    // Resolve relative paths against group dir
+    if (!filePath.startsWith('/')) {
+      filePath = `${GROUP_DIR}/${filePath}`;
+    }
+
+    // Normalize to prevent path traversal
+    const resolved = fs.realpathSync(filePath).replace(/\\/g, '/');
+    if (!resolved.startsWith(GROUP_DIR)) {
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: `Security error: file must be under ${GROUP_DIR}. Resolved path: ${resolved}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    if (!fs.existsSync(resolved)) {
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: `File not found: ${resolved}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    // Write IPC request with path relative to group dir
+    const relativePath = resolved.slice(GROUP_DIR.length + 1);
+
+    writeIpcFile(MESSAGES_DIR, {
+      type: 'send_file',
+      chatJid,
+      filePath: relativePath,
+      groupFolder,
+      timestamp: new Date().toISOString(),
+    });
+
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: `File "${relativePath}" sent to chat.`,
+        },
+      ],
+    };
+  },
+);
+
+server.tool(
   'schedule_task',
   `Schedule a recurring or one-time task. The task will run as a full agent with access to all tools. Returns the task ID for future reference. To modify an existing task, use update_task instead.
 

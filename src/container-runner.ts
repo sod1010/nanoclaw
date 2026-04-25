@@ -7,6 +7,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
+import { readEnvFile } from './env.js';
 import {
   CONTAINER_IMAGE,
   CONTAINER_MAX_OUTPUT_SIZE,
@@ -273,11 +274,38 @@ async function buildContainerArgs(
   });
   if (onecliApplied) {
     logger.info({ containerName }, 'OneCLI gateway config applied');
+    // Docker Desktop on macOS sometimes mounts temp-dir files as empty
+    // directories.  Copy PEM files to a stable path so bind-mounts work.
+    const certsDir = path.join(DATA_DIR, 'certs');
+    for (let i = 0; i < args.length; i++) {
+      const m = args[i].match(/^(-v\s+)?(.+\.pem):(.+\.pem)(?::ro)?$/);
+      if (!m) continue;
+      const src = m[2];
+      if (fs.existsSync(src) && fs.statSync(src).isFile()) {
+        fs.mkdirSync(certsDir, { recursive: true });
+        const stablePath = path.join(certsDir, path.basename(src));
+        fs.copyFileSync(src, stablePath);
+        args[i] = args[i].replace(src, stablePath);
+      }
+    }
   } else {
     logger.warn(
       { containerName },
       'OneCLI gateway not reachable — container will have no credentials',
     );
+  }
+
+  // Forward API routing config so the container SDK talks to the correct
+  // endpoint.  Credentials are handled by the OneCLI MITM proxy — do NOT
+  // forward API keys or set no_proxy (that would bypass the proxy).
+  // Read from .env since NanoClaw intentionally doesn't load .env into
+  // process.env (to prevent secret leakage to child processes).
+  const apiEnv = readEnvFile(['ANTHROPIC_BASE_URL', 'ANTHROPIC_MODEL']);
+  for (const key of ['ANTHROPIC_BASE_URL', 'ANTHROPIC_MODEL']) {
+    const value = process.env[key] || apiEnv[key];
+    if (value) {
+      args.push('-e', `${key}=${value}`);
+    }
   }
 
   // Runtime-specific args for host gateway resolution

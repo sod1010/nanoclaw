@@ -3,6 +3,9 @@
 
 // discord
 
+// feishu
+import './feishu.js';
+
 // gmail
 import './gmail.js';
 
