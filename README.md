@@ -124,8 +124,8 @@ User Agent 的 LLM 调用（`call_claude()`）使用标准 Anthropic Messages AP
 | 模型类型 | 说明 | 示例 |
 |---------|------|------|
 | **Claude**（默认） | 通过 Anthropic API 或兼容网关 | `ANTHROPIC_MODEL=claude-sonnet-4-20250514` |
-| **开源模型** | 通过兼容 API 网关 | DeepSeek、Qwen 等 |
-| **HER 微调模型** | 角色扮演数据微调，更好的人设保持 | [HER-32B](https://huggingface.co/ChengyuDu0123/HER-32B)、[CoSER-70B](https://huggingface.co/Neph0s/CoSER-Llama-3.1-70B) |
+| **其他api模型** | 通过兼容 API 网关 | DeepSeek、Qwen 等 |
+| **开源微调模型** | 角色扮演数据微调，节省成本 | [HER-32B](https://huggingface.co/ChengyuDu0123/HER-32B)、[CoSER-70B](https://huggingface.co/Neph0s/CoSER-Llama-3.1-70B) |
 
 使用微调模型可降低成本，同时在角色扮演场景获得更稳定的人设表现。
 
@@ -155,7 +155,7 @@ NanoClaw 的模型同样可替换 — 修改 `.env` 中的 `ANTHROPIC_MODEL` 即
 
 ### Roleplay Skill
 
-NanoClaw 侧通过 container skill 实现了 HER 论文的**完整三层响应架构**。我们仿照 NanoClaw 项目中已有的 `add-*` skill（如 `add-telegram`、`add-slack`）的结构，编写了 `/add-roleplay` 安装 skill；skill 的具体内容（三层回复架构、分层人设模板等）则基于 HER 论文的思想撰写。
+NanoClaw 侧也可以赋予回复类人的能力，通过参考 同事.skill, 并且同样参考了 HER 论文的**完整三层响应架构**。我们仿照 NanoClaw 项目中已有的 `add-*` skill（如 `add-telegram`、`add-slack`）的结构，编写了 `/add-roleplay` 安装 skill；skill 的具体内容（三层回复架构、分层人设模板等）则基于 HER 论文的思想撰写。
 
 **HER 三层响应架构**（NanoClaw Roleplay Skill 实现）：
 
