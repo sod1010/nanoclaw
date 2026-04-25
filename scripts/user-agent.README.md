@@ -8,9 +8,7 @@
 
 ### 飞书展示 Demo
 
-<video src="demo-feishu.mp4" controls width="600">
-  您的浏览器不支持视频播放，请下载 <a href="demo-feishu.mp4">demo-feishu.mp4</a> 观看。
-</video>
+![飞书展示 Demo](demo-feishu.gif)
 
 ---
 
