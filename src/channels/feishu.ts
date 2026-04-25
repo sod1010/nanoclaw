@@ -8,7 +8,9 @@ import { readEnvFile } from '../env.js';
 
 const feishuEnv = readEnvFile(['FEISHU_LARK_CLI_PROFILE']);
 const LARK_PROFILE =
-  process.env.FEISHU_LARK_CLI_PROFILE || feishuEnv.FEISHU_LARK_CLI_PROFILE || '';
+  process.env.FEISHU_LARK_CLI_PROFILE ||
+  feishuEnv.FEISHU_LARK_CLI_PROFILE ||
+  '';
 import { logger } from '../logger.js';
 import { registerChannel, ChannelOpts } from './registry.js';
 import {
@@ -56,7 +58,10 @@ export class FeishuChannel implements Channel {
   async connect(): Promise<void> {
     // Verify lark-cli is logged in
     try {
-      execSync(`lark-cli auth status ${LARK_PROFILE ? `--profile ${LARK_PROFILE}` : ''}`, { stdio: 'ignore', timeout: 10000 });
+      execSync(
+        `lark-cli auth status ${LARK_PROFILE ? `--profile ${LARK_PROFILE}` : ''}`,
+        { stdio: 'ignore', timeout: 10000 },
+      );
     } catch {
       logger.warn(
         'Feishu: lark-cli auth check failed. Run `lark-cli auth login --recommend` first.',
@@ -142,7 +147,14 @@ export class FeishuChannel implements Channel {
     try {
       // Detect file type for appropriate flag
       const ext = path.extname(filePath).toLowerCase();
-      const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'].includes(ext);
+      const isImage = [
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.gif',
+        '.bmp',
+        '.webp',
+      ].includes(ext);
       const flag = isImage ? '--image' : '--file';
 
       // lark-cli requires relative paths — use cwd + basename
@@ -177,7 +189,9 @@ export class FeishuChannel implements Channel {
           if (code === 0) {
             resolve();
           } else {
-            reject(new Error(`lark-cli file send failed (code ${code}): ${stderr}`));
+            reject(
+              new Error(`lark-cli file send failed (code ${code}): ${stderr}`),
+            );
           }
         });
 
@@ -365,7 +379,9 @@ export class FeishuChannel implements Channel {
 
     // Try compact text format first
     const imageMatch = content.match(/^\[Image:\s*(img_[^\]]+)\]$/);
-    const fileMatch = content.match(/^\[File:\s*(file_[^\s\]]+)(?:\s*\(([^)]+)\))?\]$/);
+    const fileMatch = content.match(
+      /^\[File:\s*(file_[^\s\]]+)(?:\s*\(([^)]+)\))?\]$/,
+    );
     if (isImage && imageMatch) {
       fileKey = imageMatch[1];
       fileName = fileKey;
@@ -379,7 +395,10 @@ export class FeishuChannel implements Channel {
         fileKey = isImage ? contentObj.image_key : contentObj.file_key;
         fileName = contentObj.file_name || fileKey || 'unknown';
       } catch {
-        logger.warn({ content }, 'Feishu: failed to parse file message content');
+        logger.warn(
+          { content },
+          'Feishu: failed to parse file message content',
+        );
         return;
       }
     }
@@ -393,7 +412,10 @@ export class FeishuChannel implements Channel {
     const groups = this.opts.registeredGroups();
     const group = groups[chatJid];
     if (!group) {
-      logger.debug({ chatJid }, 'Feishu: file from unregistered chat, skipping download');
+      logger.debug(
+        { chatJid },
+        'Feishu: file from unregistered chat, skipping download',
+      );
       return;
     }
 
@@ -405,11 +427,15 @@ export class FeishuChannel implements Channel {
     const downloadArgs = [
       'im',
       '+messages-resources-download',
-      '--as', 'bot',
+      '--as',
+      'bot',
       ...profileArgs(),
-      '--message-id', messageId,
-      '--file-key', fileKey,
-      '--type', isImage ? 'image' : 'file',
+      '--message-id',
+      messageId,
+      '--file-key',
+      fileKey,
+      '--type',
+      isImage ? 'image' : 'file',
     ];
 
     const child = spawn('lark-cli', downloadArgs, {
@@ -474,7 +500,10 @@ export class FeishuChannel implements Channel {
     });
 
     child.on('error', (err) => {
-      logger.error({ messageId, fileKey, err }, 'Feishu: file download spawn error');
+      logger.error(
+        { messageId, fileKey, err },
+        'Feishu: file download spawn error',
+      );
     });
   }
 }
@@ -483,7 +512,9 @@ registerChannel('feishu', (opts: ChannelOpts) => {
   try {
     execSync('which lark-cli', { stdio: 'ignore', timeout: 5000 });
   } catch {
-    logger.warn('Feishu: lark-cli not found. Install with: npm install -g @larksuite/cli');
+    logger.warn(
+      'Feishu: lark-cli not found. Install with: npm install -g @larksuite/cli',
+    );
     return null;
   }
   return new FeishuChannel(opts);

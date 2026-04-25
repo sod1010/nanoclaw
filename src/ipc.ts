@@ -112,7 +112,12 @@ export function startIpcWatcher(deps: IpcDeps): void {
                 // Security: ensure file is within the group directory
                 if (!resolved.startsWith(groupDir + path.sep)) {
                   logger.warn(
-                    { filePath: data.filePath, resolved, groupDir, sourceGroup },
+                    {
+                      filePath: data.filePath,
+                      resolved,
+                      groupDir,
+                      sourceGroup,
+                    },
                     'IPC send_file path traversal blocked',
                   );
                 } else if (!fs.existsSync(resolved)) {
@@ -128,7 +133,11 @@ export function startIpcWatcher(deps: IpcDeps): void {
                   ) {
                     await deps.sendFile(data.chatJid, resolved);
                     logger.info(
-                      { chatJid: data.chatJid, filePath: resolved, sourceGroup },
+                      {
+                        chatJid: data.chatJid,
+                        filePath: resolved,
+                        sourceGroup,
+                      },
                       'IPC file sent',
                     );
                   } else {

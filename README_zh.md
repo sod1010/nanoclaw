@@ -138,6 +138,7 @@ claude
 - `src/db.ts` - SQLite 操作（消息、群组、会话、状态）
 - `groups/*/CLAUDE.md` - 各群组的记忆
 
+
 ## FAQ
 
 **为什么是 Docker？**
